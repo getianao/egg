@@ -150,6 +150,8 @@ where
     I: IntoIterator<Item = Id>,
 {
     let mut ms = vec![];
+    let eclasses: Vec<Id> = eclasses.into_iter().collect();
+    // println!("Searching eclasses: {:?}", eclasses);
     for eclass in eclasses {
         if limit == 0 {
             break;

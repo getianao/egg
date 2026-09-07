@@ -76,7 +76,7 @@ mod extract;
 mod language;
 #[cfg(feature = "lp")]
 mod lp_extract;
-mod machine;
+pub mod machine;
 mod multipattern;
 mod pattern;
 mod rewrite;

@@ -442,6 +442,7 @@ where
         check_rules(&rules);
         self.egraph.rebuild();
         loop {
+            println!("Running loop {}...", self.iterations.len());
             let iter = self.run_one(&rules);
             self.iterations.push(iter);
             let stop_reason = self.iterations.last().unwrap().stop_reason.clone();
@@ -452,6 +453,7 @@ where
                 break;
             }
         }
+        println!("Stop reason: {:?}", self.stop_reason);
 
         assert!(!self.iterations.is_empty());
         assert!(self.stop_reason.is_some());
@@ -745,6 +747,7 @@ where
     ) -> RunnerResult<Vec<Vec<SearchMatches<'a, L>>>> {
         let mut matches = Vec::new();
         for rw in rewrites {
+            println!("Searching for {}", rw.name);
             let ms = self.search_rewrite(iteration, egraph, rw);
             matches.push(ms);
             limits.check_limits(iteration, egraph)?;

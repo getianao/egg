@@ -300,18 +300,29 @@ impl<L: Language, A: Analysis<L>> Searcher<L, A> for Pattern<L> {
     fn search_with_limit(&self, egraph: &EGraph<L, A>, limit: usize) -> Vec<SearchMatches<'_, L>> {
         match self.ast.last().unwrap() {
             ENodeOrVar::ENode(e) => {
-                let key = e.discriminant();
+                // println!("Searching for ENode: {:?}", e);
+
+                let key = e.discriminant(); 
                 match egraph.classes_for_op(&key) {
                     None => vec![],
-                    Some(ids) => rewrite::search_eclasses_with_limit(self, egraph, ids, limit),
+                    Some(ids) => {
+                        let ids: Vec<Id> = ids.collect();
+                        // println!("Candidate e-classes count: {}", ids.len());
+                        // println!("Candidate e-class IDs: {:?}", ids);
+                        rewrite::search_eclasses_with_limit(self, egraph, ids, limit)
+                    }
                 }
             }
-            ENodeOrVar::Var(_) => rewrite::search_eclasses_with_limit(
-                self,
-                egraph,
-                egraph.classes().map(|e| e.id),
-                limit,
-            ),
+            ENodeOrVar::Var(_) => {
+                // println!("Searching for Var");
+                    // println!("Found Var ids: {:?}", egraph.classes().map(|e| e.id));
+                    rewrite::search_eclasses_with_limit(
+                    self,
+                    egraph,
+                    egraph.classes().map(|e| e.id),
+                    limit,
+                )
+            },
         }
     }
 

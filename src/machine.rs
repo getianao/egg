@@ -11,9 +11,18 @@ struct Machine {
     lookup: Vec<Id>,
 }
 
+/// A register in a compiled pattern-matching program.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-struct Reg(u32);
+pub struct Reg(u32);
 
+impl Reg {
+    /// Returns the zero-based register index.
+    pub fn index(self) -> u32 {
+        self.0
+    }
+}
+
+/// A pattern compiled to the instructions consumed by egg's matcher.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Program<L> {
     instructions: Vec<Instruction<L>>,
@@ -21,15 +30,16 @@ pub struct Program<L> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum Instruction<L> {
+pub enum Instruction<L> {
     Bind { node: L, i: Reg, out: Reg },
     Compare { i: Reg, j: Reg },
     Lookup { term: Vec<ENodeOrReg<L>>, i: Reg },
     Scan { out: Reg },
 }
 
+
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum ENodeOrReg<L> {
+pub enum ENodeOrReg<L> {
     ENode(L),
     Reg(Reg),
 }
@@ -277,7 +287,22 @@ impl<L: Language> Compiler<L> {
 }
 
 impl<L: Language> Program<L> {
-    pub(crate) fn compile_from_pat(pattern: &PatternAst<L>) -> Self {
+    /// Returns the instructions generated for this pattern program.
+    pub fn instructions(&self) -> &[Instruction<L>] {
+        &self.instructions
+    }
+
+    /// Returns the matcher register assigned to each pattern variable.
+    pub fn bindings(&self) -> Vec<(Var, Reg)> {
+        self.subst
+            .vec
+            .iter()
+            .map(|(var, reg)| (*var, Reg(usize::from(*reg) as u32)))
+            .collect()
+    }
+
+    /// Compiles a pattern AST into matcher instructions.
+    pub fn compile_from_pat(pattern: &PatternAst<L>) -> Self {
         let mut compiler = Compiler::new();
         compiler.compile(None, pattern);
         let program = compiler.extract();
@@ -293,6 +318,8 @@ impl<L: Language> Program<L> {
         compiler.extract()
     }
 
+    /// Runs the compiled program from `eclass`, returning at most `limit`
+    /// substitutions.
     pub fn run_with_limit<A>(
         &self,
         egraph: &EGraph<L, A>,
